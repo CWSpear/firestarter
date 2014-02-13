@@ -1,0 +1,29 @@
+{
+  "name": "GulpConfig",
+  "version": "0.9.0",
+  "description": "A good starter config for Gulp.",
+  "dependencies": {},
+  "repository": {},
+  "devDependencies": {
+    "browser-sync": "latest",
+    "gulp": "latest",
+    "gulp-util": "latest",
+    "gulp-concat": "latest",
+    "gulp-clean": "latest",
+    "gulp-ruby-sass": "latest",
+    "gulp-uglify": "latest",
+    "gulp-autoprefixer": "latest",
+    "gulp-jade": "latest",
+    "gulp-rev": "latest",
+    "gulp-ngmin": "latest",
+    "gulp-inject": "latest",
+    "gulp-bower-files": "latest",
+    "wiredep": "latest",
+    "gulp-usemin": "latest",
+    "lodash": "latest"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mavrx"
+}
