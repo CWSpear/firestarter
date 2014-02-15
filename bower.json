@@ -18,7 +18,6 @@
   "dependencies": {
     "angular": "latest",
     "angular-route": "latest",
-    "angular-animate": "latest",
-    "jquery": "latest"
+    "angular-animate": "latest"
   }
 }

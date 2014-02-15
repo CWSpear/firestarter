@@ -13,8 +13,12 @@ node_modules/
 
 # ...except these whitelisted files and folders
 
-!dist/
+# !dist/
 !src/
 
 !.gitignore
 !*.sublime-project
+!bower.json
+!gulpfile.js
+!package.json
+!README.md
