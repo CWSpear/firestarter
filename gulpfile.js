@@ -1,17 +1,19 @@
-var path    = require('path');
-var _       = require('lodash');
+var gulp   = require('gulp');
+var gutil  = require('gulp-util');
 
-var npmConfig = require('./package.json');
+var path   = require('path');
 
-_.each(npmConfig.devDependencies, function (version, module) {
-  var name = module == 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
-  global[name] = require(module);
-});
+var _      = require('lodash');
+var bower  = require('bower');
+var npm    = require('npm');
+var rimraf = require('rimraf');
+var q      = require('q');
 
 var dest = 'dist/';
 var destAbsPath = path.resolve(dest);
 var src = 'src/';
 
+var npmConfig = require('./package.json');
 var includeBrowserSync = true;
 
 if (_.contains(gutil.env._, 'build')) { 
@@ -120,22 +122,80 @@ gulp.task('index', function () {
     .pipe(gulp.dest(dest));
 });
 
-gulp.task('build', ['copy', 'styles', 'templates', 'scripts', 'bower', 'usemin']);
+var loadModules = function () {
+  _.each(npmConfig.devDependencies, function (version, module) {
+    var name = module == 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
+    global[name] = require(module);
+  });
+};
 
-gulp.task('default', ['build'], function () {
-  gulp.watch(src + 'scss/**/*.scss', ['styles']);
-  gulp.watch(src + 'js/**/*.js', ['scripts']);
-  gulp.watch(src + 'views/**/*.jade', ['templates']);
-  gulp.watch([
-    src + 'copy/**/*', 
-    src + 'img/**/*.{png,svg,gif,jpg}'
-  ], { dot: true }, ['copy']);
+var prereqs = function () {
+  var rimrafDeferred = q.defer();
 
-  gulp.watch(src + 'index.jade', ['index', 'scripts', 'bower', 'usemin']);
+  rimraf(dest, function (er) {
+    if (er) throw er;
+    rimrafDeferred.resolve();
+    gutil.log("rimraf'd", gutil.colors.magenta(dest));
+  });
 
-  var bs = browsersync.init([dest + 'css/style.css', dest + '**/*.*']);
-  
-  // bs.on("file:changed", function (path) {
-  //   notify('File Changed ' + path);
-  // });
+  if (!gutil.env.install) {
+    loadModules();
+    return rimrafDeferred.promise;
+  }
+
+  var bowerDeferred = q.defer();
+  var npmDeferred = q.defer();
+
+  bower.commands.install().on('end', function (results) {
+    bowerDeferred.resolve();
+    gutil.log(gutil.colors.cyan('bower install'), 'finished');
+  });
+
+  npm.load(npmConfig, function (er) {
+    npm.commands.install([], function (er, data) {
+      gutil.log(gutil.colors.cyan('npm install'), 'finished');
+      loadModules();
+      npmDeferred.resolve();
+    });
+  });
+
+  return q.all([
+    rimrafDeferred.promise,
+    bowerDeferred.promise,
+    npmDeferred.promise
+  ]);    
+};
+
+gulp.task('build', function () {
+  prereqs().then(function () {
+    gulp.start('run');
+  });
 });
+
+var isWatching = false;
+gulp.task('default', function () {
+  prereqs().then(function () {
+    gulp.start('run', function () {
+      if (isWatching) return;
+      isWatching = true;
+
+      gulp.watch(src + 'scss/**/*.scss', ['styles']);
+      gulp.watch(src + 'js/**/*.js', ['scripts']);
+      gulp.watch(src + 'views/**/*.jade', ['templates']);
+      gulp.watch([
+        src + 'copy/**/*', 
+        src + 'img/**/*.{png,svg,gif,jpg}'
+      ], { dot: true }, ['copy']);
+
+      gulp.watch(src + 'index.jade', ['index', 'scripts', 'bower', 'usemin']);
+
+      var bs = browsersync.init([dest + 'css/style.css', dest + '**/*.*']);
+
+      bs.on("file:changed", function (file) {
+        terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });
+      });
+    });
+  });
+});
+
+gulp.task('run', ['copy', 'styles', 'templates', 'scripts', 'bower', 'usemin']);

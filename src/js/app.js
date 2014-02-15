@@ -19,8 +19,3 @@ angular.module('app', ['ngRoute', 'ngAnimate'])
 .run(function ($rootScope) {
     $rootScope.greeting = 'Hello world!';
 });
-
-// just to test that jQuery is getting pulled in, etc
-// $(function () {
-//     console.log('# of scripts:', $('script').length);
-// });
