@@ -1,21 +1,12 @@
-var gulp   = require('gulp');
-var gutil  = require('gulp-util');
-var sass   = require('gulp-ruby-sass');
-var prefix = require('gulp-autoprefixer');
-var jade   = require('gulp-jade');
-var clean  = require('gulp-clean');
-var concat = require('gulp-concat');
-var uglify = require('gulp-uglify');
-var rev    = require('gulp-rev');
-var inject = require('gulp-inject');
-var ngmin  = require('gulp-ngmin');
-var bower  = require('gulp-bower-files');
-var usemin = require('gulp-usemin');
-
-var sync    = require('browser-sync');
-var wiredep = require('wiredep');
 var path    = require('path');
 var _       = require('lodash');
+
+var npmConfig = require('./package.json');
+
+_.each(npmConfig.devDependencies, function (version, module) {
+  var name = module == 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
+  global[name] = require(module);
+});
 
 var dest = 'dist/';
 var destAbsPath = path.resolve(dest);
@@ -43,10 +34,10 @@ gulp.task('clean', function () {
 
 gulp.task('styles', function () {
   return gulp.src(src + 'scss/style.scss')
-    .pipe(sass({
+    .pipe(rubysass({
       style: gutil.env.production ? 'compressed' : 'nested',
     }))
-    .pipe(prefix('last 1 version'))
+    .pipe(autoprefixer('last 1 version'))
     .pipe(gutil.env.production ? rev() : gutil.noop())
     .pipe(gulp.dest(dest + 'css/'))
     .pipe(gutil.env.production ? inject(dest + 'index.html', {
@@ -107,7 +98,7 @@ gulp.task('bower', ['index'], function () {
   });
 
   if (!gutil.env.production)
-    return bower().pipe(gulp.dest(dest + 'bower_components/'));
+    return bowerfiles().pipe(gulp.dest(dest + 'bower_components/'));
     // return gulp.src('bower_components/**/*').pipe(gulp.dest(dest + 'bower_components/'));
 });
 
@@ -142,7 +133,7 @@ gulp.task('default', ['build'], function () {
 
   gulp.watch(src + 'index.jade', ['index', 'scripts', 'bower', 'usemin']);
 
-  var bs = sync.init([dest + 'css/style.css', dest + '**/*.*']);
+  var bs = browsersync.init([dest + 'css/style.css', dest + '**/*.*']);
   
   // bs.on("file:changed", function (path) {
   //   notify('File Changed ' + path);
