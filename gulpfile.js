@@ -1,7 +1,7 @@
+var path   = require('path');
+
 var gulp   = require('gulp');
 var gutil  = require('gulp-util');
-
-var path   = require('path');
 
 var _      = require('lodash');
 var bower  = require('bower');
