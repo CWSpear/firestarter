@@ -9,6 +9,8 @@ var npm    = require('npm');
 var rimraf = require('rimraf');
 var q      = require('q');
 
+// start config
+
 var dest = 'dist/';
 var destAbsPath = path.resolve(dest);
 var src = 'src/';
@@ -28,11 +30,7 @@ var scripts = [
   src + 'js/**/*.js',
 ];
 
-gulp.task('clean', function () {
-  // returning makes this synchronous
-  return gulp.src(dest, { read: false })
-    .pipe(clean({ force: true }));
-});
+// end config
 
 gulp.task('styles', function () {
   return gulp.src(src + 'scss/style.scss')
