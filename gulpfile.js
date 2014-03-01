@@ -12,8 +12,9 @@ var q      = require('q');
 // start config
 
 var dest = 'dist/';
-var destAbsPath = path.resolve(dest);
 var src = 'src/';
+
+var destAbsPath = path.resolve(dest);
 
 var npmConfig = require('./package.json');
 var includeBrowserSync = true;
@@ -32,8 +33,16 @@ var scripts = [
 
 // end config
 
+var onError = function (err) {
+  gutil.beep();
+  console.log(wrap(err.message), wrap(err));
+};
+
 gulp.task('styles', function () {
   return gulp.src(src + 'scss/style.scss')
+    .pipe(plumber({
+      errorHandler: onError
+    }))
     .pipe(rubysass({
       style: gutil.env.production ? 'compressed' : 'nested',
     }))
@@ -70,6 +79,9 @@ gulp.task('templates', function () {
 
 gulp.task('scripts', ['index', 'bower'], function () {
   return gulp.src(scripts)
+    .pipe(plumber({
+      errorHandler: onError
+    }))
     .pipe(gutil.env.production ? ngmin() : gutil.noop())
     .pipe(gutil.env.production ? concat('script.js') : gutil.noop())
     .pipe(gutil.env.production ? uglify() : gutil.noop())
@@ -120,11 +132,13 @@ gulp.task('index', function () {
     .pipe(gulp.dest(dest));
 });
 
+var wrap;
 var loadModules = function () {
   _.each(npmConfig.devDependencies, function (version, module) {
     var name = module == 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
     global[name] = require(module);
   });
+  wrap = wordwrap(80);
 };
 
 var prereqs = function () {
@@ -187,7 +201,14 @@ gulp.task('default', function () {
 
       gulp.watch(src + 'index.jade', ['index', 'scripts', 'bower', 'usemin']);
 
-      var bs = browsersync.init([dest + 'css/style.css', dest + '**/*.*']);
+      var bs = browsersync.init([dest + 'css/style.css', dest + '**/*.*'], {
+        ghostMode: {
+          clicks: false,
+          links: false,
+          forms: false,
+          scroll: false
+        }
+      });
 
       bs.on("file:changed", function (file) {
         terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });

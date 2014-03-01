@@ -16,7 +16,6 @@
     "gulp-ngmin": "latest",
     "gulp-inject": "latest",
     "gulp-bower-files": "latest",
-    
     "browser-sync": "latest",
     "wiredep": "latest",
     "gulp-usemin": "latest",
@@ -25,7 +24,9 @@
     "rimraf": "latest",
     "bower": "latest",
     "npm": "latest",
-    "terminal-notifier": "latest"
+    "terminal-notifier": "latest",
+    "wordwrap": "latest",
+    "gulp-plumber": "latest"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
