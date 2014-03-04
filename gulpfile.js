@@ -72,7 +72,7 @@ var jadeOpts = {
 };
 
 gulp.task('templates', function () {
-  gulp.src([src + 'views/**/*.jade', src + '!views/include/**/*'])
+  gulp.src([src + 'views/**/*.jade', '!' + src + 'views/partials/**/*'])
     .pipe(jade(jadeOpts))
     .pipe(gulp.dest(dest + 'views/'));
 });
