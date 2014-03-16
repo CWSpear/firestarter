@@ -16,13 +16,13 @@ html(lang='en', ng-app='app')
     // endinject 
   body
     nav
-      a(href='#/') Home
-      a(href='#/about/') About
-      a(href='#/contact/') Contact
+      a(href='/') Home
+      a(href='/about/') About
+      a(href='/contact/') Contact
 
     div(ng-view)
 
-    // build:js(.) /js/vendor.js
+    // build:js(src) /js/vendor.js
     // bower 
     // endbower 
     // endbuild 
@@ -33,4 +33,4 @@ html(lang='en', ng-app='app')
     if includeBrowserSync
       script(src='//localhost:3000/socket.io/socket.io.js')
       script. var ___socket___ = io.connect('http://localhost:3000');
-      script(src='//localhost:3001/client/browser-sync-client.0.6.0.js')
+      script(src='//localhost:3001/client/browser-sync-client.0.6.2.js')

@@ -35,7 +35,7 @@ var scripts = [
 
 var onError = function (err) {
   gutil.beep();
-  console.log(wrap(err.message), wrap(err));
+  console.log(err.message, err);
 };
 
 gulp.task('styles', function () {
@@ -96,22 +96,25 @@ gulp.task('scripts', ['index', 'bower'], function () {
 });
 
 gulp.task('bower', ['index'], function () {
-  wiredep({
-    directory: 'bower_components',
-    bowerJson: require('./bower.json'),
-    src: [dest + 'index.html'],
-    fileTypes: {
-      html: {
-        replace: {
-          js: '<script src="/{{filePath}}"></script>'
+  if (!gutil.env.production)
+    bowerfiles().pipe(gulp.dest(dest + 'bower_components/'));
+
+  return gulp.src([dest + 'index.html'])
+    .pipe(plumber({
+      errorHandler: onError
+    }))
+    .pipe(wiredep.stream({
+      directory: 'bower_components',
+      bowerJson: require('./bower.json'),
+      fileTypes: {
+        html: {
+          replace: {
+            js: '<script src="/{{filePath}}"></script>'
+          }
         }
       }
-    }
-  });
-
-  if (!gutil.env.production)
-    return bowerfiles().pipe(gulp.dest(dest + 'bower_components/'));
-    // return gulp.src('bower_components/**/*').pipe(gulp.dest(dest + 'bower_components/'));
+    }))
+    .pipe(gulp.dest(dest));
 });
 
 gulp.task('usemin', ['bower', 'scripts'], function () {
@@ -119,7 +122,7 @@ gulp.task('usemin', ['bower', 'scripts'], function () {
 
   gulp.src(dest + 'index.html')
     .pipe(usemin({
-      jsmin: uglify()
+      js: [uglify(), rev()]
     }))
     .pipe(gulp.dest(dest));
 });
@@ -132,13 +135,11 @@ gulp.task('index', function () {
     .pipe(gulp.dest(dest));
 });
 
-var wrap;
 var loadModules = function () {
   _.each(npmConfig.devDependencies, function (version, module) {
     var name = module == 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
     global[name] = require(module);
   });
-  wrap = wordwrap(80);
 };
 
 var prereqs = function () {
@@ -210,7 +211,7 @@ gulp.task('default', function () {
         }
       });
 
-      bs.on("file:changed", function (file) {
+      bs.events.on("file:changed", function (file) {
         terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });
       });
     });

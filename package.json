@@ -25,7 +25,6 @@
     "bower": "latest",
     "npm": "latest",
     "terminal-notifier": "latest",
-    "wordwrap": "latest",
     "gulp-plumber": "latest"
   },
   "scripts": {
