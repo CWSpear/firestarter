@@ -104,6 +104,7 @@ gulp.task('bower', ['index'], function () {
       errorHandler: onError
     }))
     .pipe(wiredep.stream({
+      ignorePath: /^\.\.\//,
       directory: 'bower_components',
       bowerJson: require('./bower.json'),
       fileTypes: {
