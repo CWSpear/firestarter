@@ -175,7 +175,7 @@ var setUpServer = function () {
 
   var server = $.express();
 
-  // helps by handling 404s for these dirs
+  // serve static resources from here
   server.use('/js', $.express.static(__dirname + '/dist/js'));
   server.use('/img', $.express.static(__dirname + '/dist/img'));
   server.use('/css', $.express.static(__dirname + '/dist/css'));
@@ -184,12 +184,13 @@ var setUpServer = function () {
   server.use('/fonts', $.express.static(__dirname + '/dist/fonts'));
   // server.use($.expresslogger('dev'));
 
+  // everything else gets routed to our index!
   server.get('*', function(req, res) {
     res.sendfile(__dirname + '/dist/index.html');
   });
 
   server.listen(port);
-  console.log('App listening on port ' + port);
+  console.log('Server listening on port ' + port);
 };
 
 var watchOnce = _.once(function () {
