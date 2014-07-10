@@ -1,5 +1,4 @@
 var path = require('path');
-var fs   = require('fs');
 
 var gulp  = require('gulp');
 var gutil = require('gulp-util');
@@ -10,7 +9,7 @@ var _ = require('lodash');
 // start config //
 //////////////////
 
-var moduleName = 'app';
+var moduleName = '<%= ngApp %>';
 
 var dest = 'dist/';
 var src = 'src/';
@@ -35,7 +34,7 @@ var scripts = [
 ////////////////
 
 var $ = _.object(_.map(npmConfig.devDependencies, function (version, module) {
-  var name = module == 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
+  var name = module === 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
   return [name, require(module)];
 }));
 
@@ -55,7 +54,7 @@ gulp.task('styles', function () {
     .pipe(gulp.dest(dest + 'css/'))
     .pipe(gutil.env.production ? $.inject(dest + 'index.html', {
       transform: function (filepath) {
-        return '<link rel="stylesheet" href="' + filepath.replace(dest.substr(0,2) == '..' ? destAbsPath : dest, '') + '">';
+        return '<link rel="stylesheet" href="' + filepath.replace(dest.substr(0,2) === '..' ? destAbsPath : dest, '') + '">';
       }
     }) : gutil.noop())
     .pipe(gutil.env.production ? gulp.dest(dest) : gutil.noop())
@@ -74,11 +73,10 @@ gulp.task('copy', function () {
 
 gulp.task('templates', function () {
   gulp.src([src + 'views/**/*.html', '!' + src + 'views/partials/**/*'])
-    .pipe(gulp.dest(dest + 'views/'))
-    .pipe($.browsersync.reload({ stream:true }));
+    .pipe(gulp.dest(dest + 'views/'));
 });
 
-gulp.task('scripts', ['index', 'bower'], function () {
+gulp.task('scripts', _.union(['index', 'bower'], gutil.env.production ? ['styles'] : []), function () {
   return gulp.src(scripts)
     .pipe($.plumber(plumberError))
     .pipe(gutil.env.production ? $.ngmin() : gutil.noop())
@@ -88,14 +86,13 @@ gulp.task('scripts', ['index', 'bower'], function () {
     .pipe(gulp.dest(dest + 'js/'))
     .pipe($.inject(dest + 'index.html', {
       transform: function (filepath) {
-        return '<script src="' + filepath.replace(dest.substr(0,2) == '..' ? destAbsPath : dest, '').replace(/^\//, '') + '"></script>';
+        return '<script src="' + filepath.replace(dest.substr(0,2) === '..' ? destAbsPath : dest, '').replace(/^\//, '') + '"></script>';
       }
     }))
-    .pipe(gulp.dest(dest))
-    .pipe($.browsersync.reload({ stream:true }));
+    .pipe(gulp.dest(dest));
 });
 
-gulp.task('bower', ['index'], function () {
+gulp.task('bower', _.union(['index'], gutil.env.production ? ['styles'] : []), function () {
   if (!gutil.env.production)
     $.bowerfiles().pipe(gulp.dest(dest + 'bower_components/'));
 
@@ -106,8 +103,7 @@ gulp.task('bower', ['index'], function () {
       directory: 'bower_components',
       bowerJson: require('./bower.json'),
     }))
-    .pipe(gulp.dest(dest))
-    .pipe($.browsersync.reload({ stream:true }));
+    .pipe(gulp.dest(dest));
 });
 
 gulp.task('usemin', ['index', 'bower', 'scripts', 'styles'], function () {
@@ -125,7 +121,7 @@ gulp.task('index', function () {
   // returning makes task synchronous 
   // if something else depends on it
   return gulp.src(src + 'index.html')
-    .pipe($.replace('<!-- browser-sync -->', "<script>angular.module('" + moduleName + "').constant('debug', " + !gutil.env.production + ");<"+"/script>"))
+    .pipe($.replace('<!-- browser-sync -->', '<script>angular.module(\'' + moduleName + '\').constant(\'debug\', ' + !gutil.env.production + ');<' + '/script>'))
     .pipe(gulp.dest(dest));
 });
 
@@ -135,7 +131,7 @@ var prereqs = function () {
   $.rimraf(dest, function (er) {
     if (er) throw er;
     rimrafDeferred.resolve();
-    gutil.log("rimraf'd", gutil.colors.magenta(dest));
+    gutil.log('rimraf\'d', gutil.colors.magenta(dest));
   });
 
   if (!gutil.env.install) {
@@ -145,13 +141,13 @@ var prereqs = function () {
   var bowerDeferred = $.q.defer();
   var npmDeferred = $.q.defer();
 
-  $.bower.commands.install().on('end', function (results) {
+  $.bower.commands.install().on('end', function () {
     bowerDeferred.resolve();
     gutil.log(gutil.colors.cyan('bower install'), 'finished');
   });
 
-  $.npm.load(npmConfig, function (er) {
-    npm.commands.install([], function (er, data) {
+  $.npm.load(npmConfig, function () {
+    $.npm.commands.install([], function () {
       gutil.log(gutil.colors.cyan('npm install'), 'finished');
       npmDeferred.resolve();
     });
@@ -213,7 +209,7 @@ var watchOnce = _.once(function () {
     }
   });
 
-  bs.events.on("file:changed", function (file) {
+  bs.events.on('file:changed', function (file) {
     $.terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });
   });
 
