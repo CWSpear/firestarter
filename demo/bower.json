@@ -1,0 +1,20 @@
+{
+  "name": "awesomeDestroyerApp",
+  "version": "0.1.0",
+  "description": "Awesome Destroyer App is awesome!",
+  "main": "js/app.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "latest",
+    "angular-route": "latest",
+    "angular-animate": "latest"
+  }
+}

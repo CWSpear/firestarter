@@ -1,24 +1,2 @@
-bower_components/
 node_modules/
-.sass-cache/
-
-
-############################################
-#            WHITELIST APPROACH            #
-############################################
-
-# Ignore EVERYTHING in the main directory...
-/*
-
-
-# ...except these whitelisted files and folders
-
-# !dist/
-!src/
-
-!.gitignore
-!*.sublime-project
-!bower.json
-!gulpfile.js
-!package.json
-!README.md
+temp/

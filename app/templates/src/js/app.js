@@ -1,4 +1,4 @@
-angular.module('app', ['ngRoute', 'ngAnimate'])
+angular.module('<%= ngApp %>', ['ngRoute', 'ngAnimate'])
 
 .config(function ($routeProvider, $locationProvider) {
     $locationProvider.html5Mode(true).hashPrefix('!');

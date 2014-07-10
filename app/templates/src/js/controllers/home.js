@@ -1,5 +1,5 @@
-angular.module('app')
+angular.module('<%= ngApp %>')
 
 .controller('HomeCtrl', function ($scope) {
-    console.log('test');
+
 });
