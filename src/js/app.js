@@ -18,6 +18,13 @@ angular.module('app', ['ngRoute', 'ngAnimate'])
         });
 })
 
-.run(function ($rootScope) {
+.run(function ($rootScope, debug) {
     $rootScope.greeting = 'Hello world!';
+
+    if (debug) {
+        // browserSync
+        var script = document.createElement('script');
+        script.src = '//HOST:3000/browser-sync-client.js'.replace(/HOST/g, location.hostname);
+        document.body.insertBefore(script, null);
+    }
 });
