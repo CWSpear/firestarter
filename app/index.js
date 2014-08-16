@@ -49,15 +49,22 @@ var FirestarterGenerator = yeoman.generators.Base.extend({
 
 FirestarterGenerator.prototype.templateDirectory = function(source, destination) {
   if (!source) return;
-  
+
   var root = this.isPathAbsolute(source) ? source : path.join(this.sourceRoot(), source);
   var files = this.expandFiles('**', { dot: true, cwd: root });
 
   _.each(files, function (file) {
     if (file === '.' || file === '..') return;
-    console.log(root, file, destination, path.dirname(file), path.basename(file));
+
     var src = path.join(root, file);
+
+    // exceptions
+    if (_.contains(file, 'Fire Starter')) {
+      file = file.replace('Fire Starter', this.appName);
+    }
+
     var dest = path.join(destination, path.dirname(file), path.basename(file));
+
     this.template(src, dest);
   }, this);
 };

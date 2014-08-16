@@ -2,7 +2,6 @@
   "name": "<%= ngApp %>",
   "version": "0.1.0",
   "description": "<%= appName %> is awesome!",
-  "main": "js/app.js",
   "license": "MIT",
   "private": true,
   "ignore": [
