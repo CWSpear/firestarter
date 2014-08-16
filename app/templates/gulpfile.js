@@ -82,7 +82,7 @@ gulp.task('templates', function () {
 gulp.task('scripts', _.union(['index', 'bower'], gutil.env.production ? ['styles'] : []), function () {
     return gulp.src(scripts)
         .pipe($.plumber(plumberError))
-        .pipe(gutil.env.production ? $.ngmin() : gutil.noop())
+        .pipe(gutil.env.production ? $.ngannotate() : gutil.noop())
         .pipe(gutil.env.production ? $.concat('script.js') : gutil.noop())
         .pipe(gutil.env.production ? $.uglify() : gutil.noop())
         .pipe($.rev())
