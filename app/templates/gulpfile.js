@@ -12,8 +12,8 @@ var _ = require('lodash');
 
 var moduleName = '<%= ngApp %>';
 
-var assetsDir = '';
-var dest = 'public/' + assetsDir + (assetsDir ? '/' : '');
+var assetsDir = 'assets';
+var dest = 'public/' + assetsDir + '/';
 var src = 'src/';
 
 var destAbsPath = path.resolve(dest);
@@ -36,7 +36,7 @@ var scripts = [
 ////////////////
 
 var $ = _.object(_.map(npmConfig.devDependencies, function (version, module) {
-    var name = module === 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace('-', '');
+    var name = module === 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace(/-/g, '');
     return [name, require(module)];
 }));
 
@@ -109,15 +109,15 @@ gulp.task('bower', _.union(['index'], gutil.env.production ? ['styles'] : []), f
                     return '<script src="' + assetsDir + '/' + filepath.replace(dest.substr(0,2) === '..' ? destAbsPath : dest, '').replace(/^\//, '') + '"></script>';
                 }
             }))
-            .pipe(gulp.dest(dest))
+            .pipe(gulp.dest(dest));
     } else {
-        $.bowerfiles().pipe(gulp.dest(dest + 'bower_components/'));
+        gulp.src($.mainbowerfiles(), { base: 'bower_components/' })
+            .pipe(gulp.dest(dest + 'bower_components/'));
 
         return gulp.src([dest + 'index.html'])
             .pipe($.plumber(plumberError))
             .pipe($.wiredep.stream({
                 ignorePath: /^\.\.\/\.\.\//,
-                directory: 'bower_components',
                 bowerJson: require('./bower.json'),
                 fileTypes: gutil.env.production ? {} : {
                     html: {
