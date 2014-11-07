@@ -11,7 +11,7 @@ var _ = require('lodash');
 // start config //
 //////////////////
 
-var moduleName = '<% ngApp %>';
+var moduleName = '<%= ngApp %>';
 
 var assetsDir = '';
 var dest = 'dist/' + (assetsDir ? assetsDir + '/' : '');
