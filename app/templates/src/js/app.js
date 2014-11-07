@@ -1,4 +1,5 @@
-angular.module('awesomeDestroyerApp', ['ui.router', 'ngAnimate', 'restangular'])
+angular.module('<%= ngApp %>', ['ui.router', 'ngAnimate', 'restangular'])
+
 
 .config(function ($stateProvider, $locationProvider) {
     $locationProvider.html5Mode(true).hashPrefix('!');
