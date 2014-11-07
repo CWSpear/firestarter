@@ -8,17 +8,17 @@ angular.module('<%= ngApp %>', ['ui.router', 'ngAnimate', 'restangular'])
         .state('home', {
             url: '/',
             controller: 'HomeCtrl',
-            templateUrl: 'views/home.html'
+            templateUrl: 'home/home.html'
         })
         .state('about', {
             url: '/about/',
             controller: 'AboutCtrl',
-            templateUrl: 'views/about.html'
+            templateUrl: 'about/about.html'
         })
         .state('contact', {
             url: '/contact/',
             controller: 'ContactCtrl',
-            templateUrl: 'views/contact.html'
+            templateUrl: 'contact/contact.html'
         });
 })
 

@@ -1,5 +1,7 @@
 /* jscs:disable disallowTrailingComma */
 var path = require('path');
+var url  = require('url');
+var fs   = require('fs');
 
 var gulp  = require('gulp');
 var gutil = require('gulp-util');
@@ -29,8 +31,8 @@ if (_.contains(gutil.env._, 'build')) {
 }
 
 var scripts = [
-    src + 'js/app.js',
-    src + 'js/**/*.js',
+    src + 'common/app.js',
+    src + '**/*.js',
 ];
 
 ////////////////
@@ -72,9 +74,9 @@ gulp.task('styles', function () {
         .pipe($.browsersync.reload({ stream: true }));
 });
 
-gulp.task('copy', function () {
+gulp.task('static', function () {
     // apparently gulp ignores dotfiles with globs
-    gulp.src(src + 'copy/**/*', { dot: true })
+    gulp.src(src + 'static/**/*', { dot: true })
         .pipe(gulp.dest(dest));
 
     gulp.src(src + 'img/**/*.{png,svg,gif,jpg}')
@@ -83,9 +85,9 @@ gulp.task('copy', function () {
 });
 
 gulp.task('templates', function () {
-    gulp.src([src + 'views/**/*.html', '!' + src + 'views/partials/**/*'])
-        .pipe($.changed(dest + 'views/'))
-        .pipe(gulp.dest(dest + 'views/'))
+    gulp.src([src + '**/*.html', '!' + src + 'partials/**/*'])
+        .pipe($.changed(dest))
+        .pipe(gulp.dest(dest))
         .pipe($.browsersync.reload({ stream: true }));
 });
 
@@ -98,7 +100,7 @@ gulp.task('scripts', function () {
         .pipe(gutil.env.production ? $.concat('script.js') : gutil.noop())
         .pipe(gutil.env.production ? $.uglify() : gutil.noop())
         .pipe($.rev())
-        .pipe(gulp.dest(dest + 'js/'))
+        .pipe(gulp.dest(dest))
         .pipe($.tap(function (file) {
             // keep track of files to inject
             injectables.scripts.push(file.path);
@@ -118,7 +120,7 @@ gulp.task('index', indexDeps, function () {
         .pipe($.inject(gulp.src(_.flatten(_.values(injectables)), { read: false }), {
             transform: function (filepath) {
                 if (path.extname(filepath) === '.css') {
-                    return '<link rel="stylesheet" href="' + assetsDir + '' + filepath.replace(dest.substr(0, 2) === '..' ? destAbsPath : dest, '') + '">';
+                    return '<link rel="stylesheet" href="' + assetsDir + filepath.replace(dest.substr(0, 2) === '..' ? destAbsPath : dest, '') + '">';
                 }
 
                 if (path.extname(filepath) === '.js') {
@@ -179,18 +181,21 @@ var setUpServer = function () {
 
     var server = $.express();
 
-    // serve static resources from here
-    server.use('/js', $.express.static(__dirname + '/dist/js'));
-    server.use('/img', $.express.static(__dirname + '/dist/img'));
-    server.use('/css', $.express.static(__dirname + '/dist/css'));
-    server.use('/views', $.express.static(__dirname + '/dist/views'));
-    server.use('/bower_components', $.express.static(__dirname + '/dist/bower_components'));
-    server.use('/fonts', $.express.static(__dirname + '/dist/fonts'));
     // server.use($.expresslogger('dev'));
 
     // everything else gets routed to our index!
     server.get('*', function (req, res) {
-        res.sendFile(__dirname + '/dist/index.html');
+        var filepath = path.normalize(__dirname + '/' + dest + url.parse(req.url).pathname);
+        if (fs.existsSync(filepath) && fs.statSync(filepath).isFile()) {
+            // send the file if it's a static file and exists
+            res.sendFile(filepath);
+        } else if (filepath.match(/\.[a-z0-9-]{1,6}$/)) {
+            // if it has an "extension," but doesn't exist, send 404
+            res.sendStatus(404);
+        } else {
+            // otherwise, send the angular base template
+            res.sendFile(path.normalize(__dirname + '/' + dest + 'index.html'));
+        }
     });
 
     server.listen(port);
@@ -199,12 +204,15 @@ var setUpServer = function () {
 
 var watchOnce = _.once(function () {
     gulp.watch(src + 'scss/**/*.scss', ['styles']);
-    gulp.watch(src + 'js/**/*.js', ['index']);
-    gulp.watch(src + 'views/**/*.html', ['templates']);
+    gulp.watch(src + '**/*.js', ['index']);
     gulp.watch([
-        src + 'copy/**/*',
+        src + '**/*.html',
+        '!' + src + 'index.html'
+    ], ['templates']);
+    gulp.watch([
+        src + 'static/**/*',
         src + 'img/**/*.{png,svg,gif,jpg}'
-    ], { dot: true }, ['copy']);
+    ], { dot: true }, ['static']);
 
     gulp.watch(src + 'index.html', ['index', 'scripts']);
 
@@ -229,6 +237,6 @@ gulp.task('default', function () {
     });
 });
 
-gulp.task('run', ['copy', 'styles', 'templates', 'scripts', 'index']);
+gulp.task('run', ['static', 'styles', 'templates', 'scripts', 'index']);
 
 gulp.task('serve', setUpServer);
