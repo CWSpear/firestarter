@@ -1,7 +1,12 @@
+**Firestarter has 3 parts:**
+
+1. A Yeoman Generator for generating a default Angular SPA app structure.
+2. An awesome `gulp` build script for optimization things just like I like them for new Angular SPAs.
+3. **(Coming Soon!)** A (Yeoman) tool for generating additional templated views and controllers, etc to remove the need to write a lot of boilerplate code. These templates are fully customizable.
+
 # Yeoman Firestarter Generator
 
 > [Yeoman](http://yeoman.io) generator
-
 
 ## Getting Started
 
@@ -49,9 +54,9 @@ $ yo firestarter
 
 Yeoman has a heart of gold. He's a person with feelings and opinions, but he's very easy to work with. If you think he's too opinionated, he can be easily convinced.
 
-If you'd like to get to know Yeoman better and meet some of his friends, [Grunt](http://gruntjs.com) and [Bower](http://bower.io), check out the complete [Getting Started Guide](https://github.com/yeoman/yeoman/wiki/Getting-Started).
+If you'd like to get to know Yeoman better and meet some of his friends, [Gulp](http://gulpjs.com/) and [Bower](http://bower.io), check out the complete [Getting Started Guide](https://github.com/yeoman/yeoman/wiki/Getting-Started).
 
-# Firestarter
+# Firestarter Gulp Build
 
 ## Quick start:
 
@@ -105,6 +110,10 @@ This particular project was built with an AngularJS Single Page Application (SPA
 * Watches all files and runs appropriate tasks and reloads page/injects CSS.
 * Uses `gulp-plumber` to make sure `watch` doesn't break everything.
 
-## License
+# Firestarter Template Builder
+
+*Coming Soon*
+
+# License
 
 MIT
