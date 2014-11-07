@@ -1,7 +1,7 @@
 {
     "name": "generator-firestarter",
-    "version": "1.0.0",
-    "description": "Yeoman generator",
+    "version": "1.0.1",
+    "description": "A Yeoman generator to help kickstart Angular SPA with a Gulp build script.",
     "license": "MIT",
     "main": "app/index.js",
     "repository": "CWSpear/firestarter",
