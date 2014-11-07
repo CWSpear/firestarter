@@ -9,21 +9,24 @@ var chalk = require('chalk');
 
 var _ = require('lodash');
 
+// this config is saved variables gathered from the yeoman generator
+var config = require('./firestarter.json');
+
 //////////////////
 // start config //
 //////////////////
 
-var moduleName = '<%= ngApp %>';
+var moduleName = config.ngApp;
 
-var assetsDir = '';
-var dest = 'dist/' + (assetsDir ? assetsDir + '/' : '');
-var src = 'src/';
+var assetsDir = config.assetDir;
+var dest = config.destDir + '/' + (assetsDir ? assetsDir + '/' : '');
+var src = config.srcDir + '/';
 
 var destAbsPath = path.resolve(dest);
 
 var npmConfig = require('./package.json');
 var includeBrowserSync = true;
-var browserSyncPort = 3233;
+var browserSyncPort = _.random(3001, 5000);
 
 if (_.contains(gutil.env._, 'build')) {
     if (!gutil.env.production) gutil.env.production = true;
@@ -113,9 +116,9 @@ gulp.task('index', indexDeps, function () {
     // returning makes task synchronous
     // if something else depends on it
     return gulp.src(src + 'index.html')
-        .pipe($.replace('<!-- browser-sync -->',
-            '<script>angular.module(\'' + moduleName + '\').constant(\'debug\', ' + !gutil.env.production + ');<' + '/script>' +
-            '<script>angular.module(\'' + moduleName + '\').constant(\'browserSyncPort\', ' + browserSyncPort + ');<' + '/script>'
+        .pipe($.replace(
+            '<!-- browser-sync -->',
+            '<script>angular.module(\'' + moduleName + '\').constant(\'watchPort\', ' + (gutil.env.watch && browserSyncPort) + ');<' + '/script>'
         ))
         .pipe($.inject(gulp.src(_.flatten(_.values(injectables)), { read: false }), {
             transform: function (filepath) {
@@ -170,22 +173,21 @@ var prereqs = function () {
     ]);
 };
 
-gulp.task('build', function () {
-    prereqs().then(function () {
-        gulp.start('run');
-    });
-});
-
 var setUpServer = function () {
     var port = !gutil.env.serve || gutil.env.serve === true ? 1337 : gutil.env.serve;
+    // port flag overrides!
+    if (gutil.env.port && gutil.env.serve !== true)
+        port = gutil.env.port;
 
     var server = $.express();
 
     // server.use($.expresslogger('dev'));
 
+    var public = dest.replace(new RegExp(assetsDir + '\/?$'), '/');
+
     // everything else gets routed to our index!
     server.get('*', function (req, res) {
-        var filepath = path.normalize(__dirname + '/' + dest + url.parse(req.url).pathname);
+        var filepath = path.normalize(__dirname + '/' + public + url.parse(req.url).pathname);
         if (fs.existsSync(filepath) && fs.statSync(filepath).isFile()) {
             // send the file if it's a static file and exists
             res.sendFile(filepath);
@@ -199,10 +201,16 @@ var setUpServer = function () {
     });
 
     server.listen(port);
-    console.log('Server listening on port ' + port);
+    gutil.log(chalk.yellow('Server listening on port ') + chalk.blue(port));
 };
 
 var watchOnce = _.once(function () {
+    // watch flag must be set to watch
+    if (!gutil.env.watch) {
+        if (gutil.env.serve) setUpServer();
+        return;
+    }
+
     gulp.watch(src + 'scss/**/*.scss', ['styles']);
     gulp.watch(src + '**/*.js', ['index']);
     gulp.watch([
@@ -223,6 +231,7 @@ var watchOnce = _.once(function () {
     });
 
     gutil.log(chalk.yellow('Watching for changes...'));
+    gutil.log(chalk.yellow('browserSync listening on port ') + chalk.blue(browserSyncPort));
 
     bs.events.on('file:changed', function (file) {
         $.terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });
@@ -231,11 +240,28 @@ var watchOnce = _.once(function () {
     if (gutil.env.serve) setUpServer();
 });
 
+// Task Definitions
+// -------------------------
+
 gulp.task('default', function () {
     prereqs().then(function () {
         gulp.start('run', watchOnce);
     });
 });
+
+// dev/devlopment is an alias for default
+gulp.task('dev', ['default']);
+gulp.task('devlopment', ['default']);
+
+gulp.task('prod', function () {
+    prereqs().then(function () {
+        gulp.start('run');
+    });
+});
+
+// build is an alias for production for legacy reasons
+gulp.task('build', ['production']);
+gulp.task('production', ['production']);
 
 gulp.task('run', ['static', 'styles', 'templates', 'scripts', 'index']);
 

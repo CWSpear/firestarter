@@ -1,4 +1,4 @@
-# generator-firestarter
+# Yeoman Firestarter Generator
 
 > [Yeoman](http://yeoman.io) generator
 
@@ -9,7 +9,7 @@
 
 Trick question. It's not a thing. It's this guy:
 
-![](http://i.imgur.com/JHaAlBJ.png)
+![yo](http://i.imgur.com/JHaAlBJ.png)
 
 Basically, he wears a top hat, lives in your computer, and waits for you to tell him what kind of application you wish to create.
 
@@ -26,7 +26,7 @@ Yeoman travels light. He didn't pack any generators when he moved in. You can th
 ~~To install generator-firestarter from npm, run:~~ I am not ready to publish to npm. For now, you can do this:
 
 ```bash
-$ git clone https://github.com/CWSpear/generator-firestarter.git firestarter
+$ git clone https://github.com/CWSpear/firestarter.git firestarter
 $ cd firestarter
 $ npm link
 ```
@@ -43,43 +43,46 @@ Yeoman has a heart of gold. He's a person with feelings and opinions, but he's v
 
 If you'd like to get to know Yeoman better and meet some of his friends, [Grunt](http://gruntjs.com) and [Bower](http://bower.io), check out the complete [Getting Started Guide](https://github.com/yeoman/yeoman/wiki/Getting-Started).
 
-# Firestarter Kit
+# Firestarter
 
-Quick start:
+## Quick start:
 
 ```shell
 npm install
-gulp --install
+bower install
+gulp
 ```
 
-**Note** that I *do* use [Gulp Ruby Sass](https://github.com/sindresorhus/gulp-ruby-sass) and you will need to have Ruby (and I believe Sass) installed to make those work.
+## Gulp commands:
 
-Gulp commands:
-
-### Build (as in "for production"):
+### Production Build
 ```shell
+gulp production
+# aliases for the same thing
 gulp build
+gulp prod
 ```
 
-### Build + Watch (as in "for development"):
+### Development Build
 ```shell
 gulp
-# or
+# aliases for the same thing
 gulp dev
-# or
-gulp watch
+gulp development
 ```
 
-### Install Bower compoments (and any new npm packages)
+### Watch for
 ```shell
-gulp [build] --install
+# just add the --watch flag to any command
+gulp [production] --watch
 ```
 
 ### Local development server for Angular SPA
 ```shell
-gulp serve
+gulp serve [--port="port"] # just serves the app
 # or
-gulp dev --serve # runs dev task + serves
+gulp --serve[="port"] # runs dev task + serves (define optional port)
+# (--port flag overrides --serve flag)
 ```
 
 ## What does it do?
@@ -90,7 +93,7 @@ This particular project was built with an AngularJS Single Page Application (SPA
 * Compile scss -> css (minifies if using build task)
 * Automatically links JS, rev's files (concat + minify if using build task)
 * Automatically link bower components (resolving dependencies to determine order)
-* Copies other files and images to dest folder.
+* Copies other static files and images to dest folder.
 * Watches all files and runs appropriate tasks and reloads page/injects CSS.
 * Uses `gulp-plumber` to make sure `watch` doesn't break everything.
 
