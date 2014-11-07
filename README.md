@@ -23,13 +23,21 @@ $ npm install -g yo
 
 Yeoman travels light. He didn't pack any generators when he moved in. You can think of a generator like a plug-in. You get to choose what type of application you wish to create, such as a Backbone application or even a Chrome extension.
 
-~~To install generator-firestarter from npm, run:~~ I am not ready to publish to npm. For now, you can do this:
+To install `firestarter` from npm, run:
+
+```bash
+npm install -g generator-firestarter
+```
+
+If you're wanting to contribute to development of this package, you can alternatively install it like so:
 
 ```bash
 $ git clone https://github.com/CWSpear/firestarter.git firestarter
 $ cd firestarter
 $ npm link
 ```
+
+`npm link` will link this local package to your global `npm` packages.
 
 Finally, initiate the generator:
 
