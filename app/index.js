@@ -22,16 +22,16 @@ var FirestarterGenerator = yeoman.generators.Base.extend({
     var done = this.async();
 
     // Have Yeoman greet the user.
-    this.log(yosay('Welcome to the marvelous Fire Starter generator!'));
+    this.log(yosay('Welcome to the marvelous Firestarter generator!'));
 
     var prompts = [{
       name: 'appName',
       message: 'What is your app\'s name?',
-      default: 'Awesome Destroyer App'
+      default: 'Firestarter'
     }, {
       name: 'ngApp',
       message: 'What is your Angular app name?',
-      default: 'awesomeDestroyerApp'
+      default: 'firestarter'
     }];
 
     this.prompt(prompts, function (props) {
@@ -59,8 +59,8 @@ FirestarterGenerator.prototype.templateDirectory = function(source, destination)
     var src = path.join(root, file);
 
     // exceptions
-    if (_.contains(file, 'Fire Starter')) {
-      file = file.replace('Fire Starter', this.appName);
+    if (_.contains(file, 'Firestarter')) {
+      file = file.replace('Firestarter', this.appName);
     }
 
     var dest = path.join(destination, path.dirname(file), path.basename(file));
