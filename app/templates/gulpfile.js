@@ -97,7 +97,7 @@ gulp.task('scripts', function () {
     return gulp.src(_.union($.wiredep().js, scripts))
         .pipe($.plumber(plumberError))
         .pipe(gutil.env.production ? $.ngannotate() : gutil.noop())
-        .pipe(gutil.env.production ? $.concat('script.js') : gutil.noop())
+        .pipe(gutil.env.production ? $.concat('js/script.js') : gutil.noop())
         .pipe(gutil.env.production ? $.uglify() : gutil.noop())
         .pipe($.rev())
         .pipe(gulp.dest(dest))
