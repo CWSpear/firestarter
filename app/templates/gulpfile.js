@@ -1,3 +1,4 @@
+/* jscs:disable disallowTrailingComma */
 var path = require('path');
 
 var gulp  = require('gulp');
@@ -10,16 +11,17 @@ var _ = require('lodash');
 // start config //
 //////////////////
 
-var moduleName = '<%= ngApp %>';
+var moduleName = '<% ngApp %>';
 
-var assetsDir = 'assets';
-var dest = 'public/' + assetsDir + '/';
+var assetsDir = '';
+var dest = 'dist/' + (assetsDir ? assetsDir + '/' : '');
 var src = 'src/';
 
 var destAbsPath = path.resolve(dest);
 
 var npmConfig = require('./package.json');
 var includeBrowserSync = true;
+var browserSyncPort = 3233;
 
 if (_.contains(gutil.env._, 'build')) {
     if (!gutil.env.production) gutil.env.production = true;
@@ -35,6 +37,8 @@ var scripts = [
 // end config //
 ////////////////
 
+var injectables = {};
+
 var $ = _.object(_.map(npmConfig.devDependencies, function (version, module) {
     var name = module === 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace(/-/g, '');
     return [name, require(module)];
@@ -46,21 +50,26 @@ var plumberError = function (err) {
 };
 
 gulp.task('styles', function () {
+    injectables.styles = [];
+
     return gulp.src(src + 'scss/style.scss')
-        .pipe($.plumber(plumberError))
+        .pipe($.plumber(function (error) {
+            plumberError(error);
+            this.emit('end');
+        }))
         .pipe($.sass({
             style: gutil.env.production ? 'compressed' : 'nested',
         }))
         .pipe($.autoprefixer('last 1 version'))
+        .pipe(gutil.env.production && $.wiredep().css && $.wiredep().css.length ? gulp.src($.wiredep().css) : gutil.noop())
+        .pipe(gutil.env.production ? $.concat('styles.css') : gutil.noop())
         .pipe(gutil.env.production ? $.rev() : gutil.noop())
         .pipe(gulp.dest(dest + 'css/'))
-        .pipe(gutil.env.production ? $.inject(dest + 'index.html', {
-            transform: function (filepath) {
-                return '<link rel="stylesheet" href="' + assetsDir + '' + filepath.replace(dest.substr(0,2) === '..' ? destAbsPath : dest, '') + '">';
-            }
-        }) : gutil.noop())
-        .pipe(gutil.env.production ? gulp.dest(dest) : gutil.noop())
-        .pipe($.browsersync.reload({ stream:true }));
+        .pipe($.tap(function (file) {
+            // keep track of things to inject (only on production)
+            if (gutil.env.production) injectables.styles.push(file.path);
+        }))
+        .pipe($.browsersync.reload({ stream: true }));
 });
 
 gulp.task('copy', function () {
@@ -70,75 +79,58 @@ gulp.task('copy', function () {
 
     gulp.src(src + 'img/**/*.{png,svg,gif,jpg}')
         .pipe(gulp.dest(dest + 'img/'))
-        .pipe($.browsersync.reload({ stream:true }));
+        .pipe($.browsersync.reload({ stream: true }));
 });
 
 gulp.task('templates', function () {
     gulp.src([src + 'views/**/*.html', '!' + src + 'views/partials/**/*'])
+        .pipe($.changed(dest + 'views/'))
         .pipe(gulp.dest(dest + 'views/'))
-        .pipe($.browsersync.reload({ stream:true }));
+        .pipe($.browsersync.reload({ stream: true }));
 });
 
-gulp.task('scripts', _.union(['index', 'bower'], gutil.env.production ? ['styles'] : []), function () {
-    return gulp.src(scripts)
+gulp.task('scripts', function () {
+    injectables.scripts = [];
+
+    return gulp.src(_.union($.wiredep().js, scripts))
         .pipe($.plumber(plumberError))
         .pipe(gutil.env.production ? $.ngannotate() : gutil.noop())
         .pipe(gutil.env.production ? $.concat('script.js') : gutil.noop())
         .pipe(gutil.env.production ? $.uglify() : gutil.noop())
         .pipe($.rev())
         .pipe(gulp.dest(dest + 'js/'))
-        .pipe($.inject(dest + 'index.html', {
-            transform: function (filepath) {
-                return '<script src="' + assetsDir + '/' + filepath.replace(dest.substr(0,2) === '..' ? destAbsPath : dest, '').replace(/^\//, '') + '"></script>';
-            }
-        }))
-        .pipe(gulp.dest(dest))
-        .pipe($.browsersync.reload({ stream:true }));
+        .pipe($.tap(function (file) {
+            // keep track of files to inject
+            injectables.scripts.push(file.path);
+        }));
 });
 
-gulp.task('bower', _.union(['index'], gutil.env.production ? ['styles'] : []), function () {
-    if (gutil.env.production) {
-        return gulp.src($.wiredep().js)
-            .pipe($.concat('vendor.js'))
-            .pipe($.uglify())
-            .pipe($.rev())
-            .pipe(gulp.dest(dest + 'js/'))
-            .pipe($.inject(dest + 'index.html', {
-                starttag: '<!-- inject:vendor:{{ext}} -->',
-                transform: function (filepath) {
-                    return '<script src="' + assetsDir + '/' + filepath.replace(dest.substr(0,2) === '..' ? destAbsPath : dest, '').replace(/^\//, '') + '"></script>';
-                }
-            }))
-            .pipe(gulp.dest(dest));
-    } else {
-        gulp.src($.mainbowerfiles(), { base: 'bower_components/' })
-            .pipe(gulp.dest(dest + 'bower_components/'));
-
-        return gulp.src([dest + 'index.html'])
-            .pipe($.plumber(plumberError))
-            .pipe($.wiredep.stream({
-                ignorePath: /^\.\.\/\.\.\//,
-                bowerJson: require('./bower.json'),
-                fileTypes: gutil.env.production ? {} : {
-                    html: {
-                        replace: {
-                            js: '<script src="' + assetsDir + '/{{filePath}}"></script>'
-                        }
-                    }
-                }
-            }))
-            .pipe(gulp.dest(dest))
-            .pipe($.browsersync.reload({ stream:true }));
-    }
-});
-
-gulp.task('index', function () {
+var indexDeps = ['scripts'];
+if (gutil.env.production) indexDeps.push('styles');
+gulp.task('index', indexDeps, function () {
     // returning makes task synchronous
     // if something else depends on it
     return gulp.src(src + 'index.html')
-        .pipe($.replace('<!-- browser-sync -->', '<script>angular.module(\'' + moduleName + '\').constant(\'debug\', ' + !gutil.env.production + ');<' + '/script>'))
+        .pipe($.replace('<!-- browser-sync -->',
+            '<script>angular.module(\'' + moduleName + '\').constant(\'debug\', ' + !gutil.env.production + ');<' + '/script>' +
+            '<script>angular.module(\'' + moduleName + '\').constant(\'browserSyncPort\', ' + browserSyncPort + ');<' + '/script>'
+        ))
+        .pipe($.inject(gulp.src(_.flatten(_.values(injectables)), { read: false }), {
+            transform: function (filepath) {
+                if (path.extname(filepath) === '.css') {
+                    return '<link rel="stylesheet" href="' + assetsDir + '' + filepath.replace(dest.substr(0, 2) === '..' ? destAbsPath : dest, '') + '">';
+                }
+
+                if (path.extname(filepath) === '.js') {
+                    return '<script src="' + assetsDir + '/' + filepath.replace(dest.substr(0, 2) === '..' ? destAbsPath : dest, '').replace(/^\//, '') + '"></script>';
+                }
+
+                // default
+                return $.inject.transform.apply($.inject.transform, arguments);
+            }
+        }))
         .pipe(gulp.dest(dest))
-        .pipe($.browsersync.reload({ stream:true }));
+        .pipe($.browsersync.reload({ stream: true }));
 });
 
 var prereqs = function () {
@@ -197,8 +189,8 @@ var setUpServer = function () {
     // server.use($.expresslogger('dev'));
 
     // everything else gets routed to our index!
-    server.get('*', function(req, res) {
-        res.sendfile(__dirname + '/dist/index.html');
+    server.get('*', function (req, res) {
+        res.sendFile(__dirname + '/dist/index.html');
     });
 
     server.listen(port);
@@ -207,23 +199,19 @@ var setUpServer = function () {
 
 var watchOnce = _.once(function () {
     gulp.watch(src + 'scss/**/*.scss', ['styles']);
-    gulp.watch(src + 'js/**/*.js', ['scripts']);
+    gulp.watch(src + 'js/**/*.js', ['index']);
     gulp.watch(src + 'views/**/*.html', ['templates']);
     gulp.watch([
         src + 'copy/**/*',
         src + 'img/**/*.{png,svg,gif,jpg}'
     ], { dot: true }, ['copy']);
 
-    gulp.watch(src + 'index.html', ['index', 'scripts', 'bower']);
+    gulp.watch(src + 'index.html', ['index', 'scripts']);
 
-    var bs = $.browsersync.init(null, {
-        debugInfo: false,
-        ghostMode: {
-            clicks: false,
-            links: false,
-            forms: false,
-            scroll: false
-        }
+    var bs = $.browsersync({
+        ghostMode: false,
+        logLevel: 'silent',
+        port: browserSyncPort
     });
 
     gutil.log(chalk.yellow('Watching for changes...'));
@@ -241,6 +229,6 @@ gulp.task('default', function () {
     });
 });
 
-gulp.task('run', ['copy', 'styles', 'templates', 'scripts', 'bower']);
+gulp.task('run', ['copy', 'styles', 'templates', 'scripts', 'index']);
 
 gulp.task('serve', setUpServer);

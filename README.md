@@ -1,4 +1,4 @@
-# generator-firestarter [![Build Status](https://secure.travis-ci.org/CWSpear/generator-firestarter.png?branch=master)](https://travis-ci.org/CWSpear/generator-firestarter)
+# generator-firestarter
 
 > [Yeoman](http://yeoman.io) generator
 

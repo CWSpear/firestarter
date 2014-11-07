@@ -16,17 +16,12 @@
 </head>
 <body>
     <nav>
-        <a href=".">Home</a>
-        <a href="about/">About</a>
-        <a href="contact/">Contact</a>
+        <a ui-sref="home">Home</a>
+        <a ui-sref="about">About</a>
+        <a ui-sref="contact">Contact</a>
     </nav>
 
-    <div ng-view></div>
-
-    <!-- bower -->
-    <!-- inject:vendor:js -->
-    <!-- endinject -->
-    <!-- endbower -->
+    <div ui-view></div>
 
     <!-- inject:js -->
     <!-- endinject -->
