@@ -5,7 +5,6 @@ var fs   = require('fs');
 
 var gulp  = require('gulp');
 var gutil = require('gulp-util');
-var chalk = require('chalk');
 
 var _ = require('lodash');
 
@@ -28,7 +27,7 @@ var npmConfig = require('./package.json');
 var includeBrowserSync = true;
 var browserSyncPort = _.random(3001, 5000);
 
-if (_.contains(gutil.env._, 'build')) {
+if (_.contains(gutil.env._, 'build') || _.contains(gutil.env._, 'prod') || _.contains(gutil.env._, 'production')) {
     if (!gutil.env.production) gutil.env.production = true;
     includeBrowserSync = false;
 }
@@ -57,29 +56,35 @@ var plumberError = function (err) {
 gulp.task('styles', function () {
     injectables.styles = [];
 
-    return gulp.src(src + 'scss/style.scss')
+    var styles = gulp.src(src + 'scss/style.scss')
         .pipe($.plumber(function (error) {
             plumberError(error);
+            // sass doesn't emit the required end event
+            // so we have to do it ourselves manually
             this.emit('end');
         }))
         .pipe($.sass({
             style: gutil.env.production ? 'compressed' : 'nested',
         }))
-        .pipe($.autoprefixer('last 1 version'))
-        .pipe(gutil.env.production && $.wiredep().css && $.wiredep().css.length ? gulp.src($.wiredep().css) : gutil.noop())
+        .pipe($.autoprefixer('last 1 version'));
+
+    var bower = gulp.src($.wiredep().css || []);
+
+    return $.streamqueue({ objectMode: true }, bower, styles)
+        .pipe($.plumber(plumberError))
         .pipe(gutil.env.production ? $.concat('styles.css') : gutil.noop())
         .pipe(gutil.env.production ? $.rev() : gutil.noop())
         .pipe(gulp.dest(dest + 'css/'))
         .pipe($.tap(function (file) {
             // keep track of things to inject (only on production)
-            if (gutil.env.production) injectables.styles.push(file.path);
+            injectables.styles.push(file.path);
         }))
         .pipe($.browsersync.reload({ stream: true }));
 });
 
 gulp.task('static', function () {
     // apparently gulp ignores dotfiles with globs
-    gulp.src(src + 'static/**/*', { dot: true })
+    gulp.src(src + 'copy/**/*', { dot: true })
         .pipe(gulp.dest(dest));
 
     gulp.src(src + 'img/**/*.{png,svg,gif,jpg}')
@@ -97,9 +102,14 @@ gulp.task('templates', function () {
 gulp.task('scripts', function () {
     injectables.scripts = [];
 
-    return gulp.src(_.union($.wiredep().js, scripts))
+    var scriptStream = gulp.src(scripts)
         .pipe($.plumber(plumberError))
-        .pipe(gutil.env.production ? $.ngannotate() : gutil.noop())
+        .pipe(gutil.env.production ? $.ngannotate() : gutil.noop());
+
+    var bower = gulp.src($.wiredep().js);
+
+    return $.streamqueue({ objectMode: true }, bower, scriptStream)
+        .pipe($.plumber(plumberError))
         .pipe(gutil.env.production ? $.concat('js/script.js') : gutil.noop())
         .pipe(gutil.env.production ? $.uglify() : gutil.noop())
         .pipe($.rev())
@@ -201,7 +211,7 @@ var setUpServer = function () {
     });
 
     server.listen(port);
-    gutil.log(chalk.yellow('Server listening on port ') + chalk.blue(port));
+    gutil.log($.chalk.yellow('Server listening on port ') + $.chalk.blue(port));
 };
 
 var watchOnce = _.once(function () {
@@ -230,8 +240,8 @@ var watchOnce = _.once(function () {
         port: browserSyncPort
     });
 
-    gutil.log(chalk.yellow('Watching for changes...'));
-    gutil.log(chalk.yellow('browserSync listening on port ') + chalk.blue(browserSyncPort));
+    gutil.log($.chalk.yellow('Watching for changes...'));
+    gutil.log($.chalk.yellow('browserSync listening on port ') + $.chalk.blue(browserSyncPort));
 
     bs.events.on('file:changed', function (file) {
         $.terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });
@@ -260,8 +270,8 @@ gulp.task('prod', function () {
 });
 
 // build is an alias for production for legacy reasons
-gulp.task('build', ['production']);
-gulp.task('production', ['production']);
+gulp.task('build', ['prod']);
+gulp.task('production', ['prod']);
 
 gulp.task('run', ['static', 'styles', 'templates', 'scripts', 'index']);
 
