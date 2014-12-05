@@ -12,6 +12,7 @@
     "express-logger": "~0.0.3",
     "glob": "~4.0.6",
     "gulp": "~3.8.10",
+    "gulp-angular-filesort": "~1.0.4",
     "gulp-autoprefixer": "~1.0.1",
     "gulp-changed": "~1.0.0",
     "gulp-concat": "~2.4.1",

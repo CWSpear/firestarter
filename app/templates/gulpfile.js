@@ -33,7 +33,6 @@ if (_.contains(gutil.env._, 'build') || _.contains(gutil.env._, 'prod') || _.con
 }
 
 var scripts = [
-    src + 'common/app.js',
     src + '**/*.js',
 ];
 
@@ -104,6 +103,7 @@ gulp.task('scripts', function () {
 
     var scriptStream = gulp.src(scripts)
         .pipe($.plumber(plumberError))
+        .pipe($.angularfilesort())
         .pipe(gutil.env.production ? $.ngannotate() : gutil.noop());
 
     var bower = gulp.src($.wiredep().js);
