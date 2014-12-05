@@ -114,6 +114,10 @@ This particular project was built with an AngularJS Single Page Application (SPA
 
 *Coming Soon*
 
+# Changelog
+
+- **v1.0.4** (*2014-12-04*) - Add `gulp-angular-filesorter` to make it automatically resolve Angular module order instead of relying on knowing exactly where module definitions are. This fixed a bug where you'd sometimes get errors about trying to access undefined modules because Firestarter wasn't looking for app.js (or other files that define modules) in the correct place.
+
 # License
 
 MIT
