@@ -1,4 +1,3 @@
-/* jscs:disable disallowTrailingComma */
 var path = require('path');
 var url  = require('url');
 var fs   = require('fs');
@@ -40,7 +39,10 @@ var scripts = [
 // end config //
 ////////////////
 
-var injectables = {};
+var injectables = {
+    scripts: [],
+    styles: []
+};
 
 var $ = _.object(_.map(npmConfig.devDependencies, function (version, module) {
     var name = module === 'gulp-util' ? 'gutil' : module.replace('gulp-', '').replace(/-/g, '');
@@ -51,6 +53,10 @@ var plumberError = function (err) {
     gutil.beep();
     console.error(err.message, err);
 };
+
+gulp.task('reload', function () {
+    $.browsersync.reload();
+});
 
 gulp.task('styles', function () {
     injectables.styles = [];
@@ -83,7 +89,7 @@ gulp.task('styles', function () {
 
 gulp.task('static', function () {
     // apparently gulp ignores dotfiles with globs
-    gulp.src(src + 'copy/**/*', { dot: true })
+    gulp.src(src + 'static/**/*', { dot: true })
         .pipe(gulp.dest(dest));
 
     gulp.src(src + 'img/**/*.{png,svg,gif,jpg}')
@@ -103,8 +109,15 @@ gulp.task('scripts', function () {
 
     var scriptStream = gulp.src(scripts)
         .pipe($.plumber(plumberError))
+        .pipe($.cached('scripts'))
+        .pipe($.babel())
+        .pipe($.remember('scripts'))
+        .pipe($.rename(function (path) {
+            // hack to prevent stuff from being doubled-rev'd
+            path.basename = path.basename.replace(/-[0-9a-f]{8}$/, '');
+        }))
         .pipe($.angularfilesort())
-        .pipe(gutil.env.production ? $.ngannotate() : gutil.noop());
+        .pipe($.ngannotate());
 
     var bower = gulp.src($.wiredep().js);
 
@@ -133,7 +146,7 @@ gulp.task('index', indexDeps, function () {
         .pipe($.inject(gulp.src(_.flatten(_.values(injectables)), { read: false }), {
             transform: function (filepath) {
                 if (path.extname(filepath) === '.css') {
-                    return '<link rel="stylesheet" href="' + assetsDir + filepath.replace(dest.substr(0, 2) === '..' ? destAbsPath : dest, '') + '">';
+                    return '<link rel="stylesheet" href="' + assetsDir + filepath.replace(dest.substr(0, 2) === '..' ? destAbsPath : dest, '') + '" />';
                 }
 
                 if (path.extname(filepath) === '.js') {
@@ -148,7 +161,7 @@ gulp.task('index', indexDeps, function () {
         .pipe($.browsersync.reload({ stream: true }));
 });
 
-var prereqs = function () {
+var clean = function () {
     var rimrafDeferred = $.q.defer();
 
     $.rimraf(dest, function (er) {
@@ -157,30 +170,7 @@ var prereqs = function () {
         gutil.log('rimraf\'d', gutil.colors.magenta(dest));
     });
 
-    if (!gutil.env.install) {
-        return rimrafDeferred.promise;
-    }
-
-    var bowerDeferred = $.q.defer();
-    var npmDeferred = $.q.defer();
-
-    $.bower.commands.install().on('end', function () {
-        bowerDeferred.resolve();
-        gutil.log(gutil.colors.cyan('bower install'), 'finished');
-    });
-
-    $.npm.load(npmConfig, function () {
-        $.npm.commands.install([], function () {
-            gutil.log(gutil.colors.cyan('npm install'), 'finished');
-            npmDeferred.resolve();
-        });
-    });
-
-    return $.q.all([
-        rimrafDeferred.promise,
-        bowerDeferred.promise,
-        npmDeferred.promise
-    ]);
+    return rimrafDeferred.promise;
 };
 
 var setUpServer = function () {
@@ -221,8 +211,9 @@ var watchOnce = _.once(function () {
         return;
     }
 
+    var scriptWatcher = gulp.watch(src + '**/*.js', ['index']);
+
     gulp.watch(src + 'scss/**/*.scss', ['styles']);
-    gulp.watch(src + '**/*.js', ['index']);
     gulp.watch([
         src + '**/*.html',
         '!' + src + 'index.html'
@@ -234,6 +225,14 @@ var watchOnce = _.once(function () {
 
     gulp.watch(src + 'index.html', ['index', 'scripts']);
 
+    scriptWatcher.on('change', function (event) {
+        if (event.type === 'deleted') {
+            // if a file is deleted, forget about it
+            delete $.cached.caches.scripts[event.path];
+            $.remember.forget('scripts', event.path);
+        }
+    });
+
     var bs = $.browsersync({
         ghostMode: false,
         logLevel: 'silent',
@@ -243,8 +242,12 @@ var watchOnce = _.once(function () {
     gutil.log($.chalk.yellow('Watching for changes...'));
     gutil.log($.chalk.yellow('browserSync listening on port ') + $.chalk.blue(browserSyncPort));
 
-    bs.events.on('file:changed', function (file) {
-        $.terminalnotifier(file.path.replace(destAbsPath, ''), { title: 'File Changed' });
+    bs.emitter.on('file:changed', function (file) {
+        $.nodenotifier.notify({
+            icon: 'http://yeoman.io/assets/img/yeoman-02.eed5.png',
+            title: 'File Changed',
+            message:  file.path.replace(destAbsPath, '')
+        });
     });
 
     if (gutil.env.serve) setUpServer();
@@ -254,17 +257,17 @@ var watchOnce = _.once(function () {
 // -------------------------
 
 gulp.task('default', function () {
-    prereqs().then(function () {
-        gulp.start('run', watchOnce);
+    clean().then(function () {
+        gulp.start('run', ['watch']);
     });
 });
 
-// dev/devlopment is an alias for default
+// dev/development is an alias for default
 gulp.task('dev', ['default']);
-gulp.task('devlopment', ['default']);
+gulp.task('development', ['default']);
 
 gulp.task('prod', function () {
-    prereqs().then(function () {
+    clean().then(function () {
         gulp.start('run');
     });
 });
@@ -276,3 +279,7 @@ gulp.task('production', ['prod']);
 gulp.task('run', ['static', 'styles', 'templates', 'scripts', 'index']);
 
 gulp.task('serve', setUpServer);
+
+// used internally, not for use from the CLI (gulp made some change to passing in
+// callbacks in `gulp.start` and I haven't looked into it further. This was a quick fix.)
+gulp.task('watch', watchOnce);

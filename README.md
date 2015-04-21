@@ -2,59 +2,41 @@
 
 1. A Yeoman Generator for generating a default Angular SPA app structure.
 2. An awesome `gulp` build script for optimization things just like I like them for new Angular SPAs.
-3. **(Coming Soon!)** A (Yeoman) tool for generating additional templated views and controllers, etc to remove the need to write a lot of boilerplate code. These templates are fully customizable.
+3. **(Coming Eventually...!)** A (Yeoman) tool for generating additional templated views and controllers, etc to remove the need to write a lot of boilerplate code. These templates are fully customizable.
 
 # Yeoman Firestarter Generator
 
-> [Yeoman](http://yeoman.io) generator
+As a pre-requisite, `yeoman` is required and if you don't already, install it globally:
 
-## Getting Started
-
-### What is Yeoman?
-
-Trick question. It's not a thing. It's this guy:
-
-![yo](http://i.imgur.com/JHaAlBJ.png)
-
-Basically, he wears a top hat, lives in your computer, and waits for you to tell him what kind of application you wish to create.
-
-Not every new computer comes with a Yeoman pre-installed. He lives in the [npm](https://npmjs.org) package repository. You only have to ask for him once, then he packs up and moves into your hard drive. *Make sure you clean up, he likes new and shiny things.*
-
-```bash
-$ npm install -g yo
+```shell
+npm install -g yo
 ```
 
-### Yeoman Generators
+If you'd like to get to know Yeoman better and meet some of his friends, [Gulp](http://gulpjs.com/) and [Bower](http://bower.io), check out the complete [Getting Started Guide](https://github.com/yeoman/yeoman/wiki/Getting-Started).
 
-Yeoman travels light. He didn't pack any generators when he moved in. You can think of a generator like a plug-in. You get to choose what type of application you wish to create, such as a Backbone application or even a Chrome extension.
+## Installation
 
-To install `firestarter` from npm, run:
+To install the `firestarter` generator, from your terminal, run:
 
-```bash
+```shell
 npm install -g generator-firestarter
 ```
 
 If you're wanting to contribute to development of this package, you can alternatively install it like so:
 
-```bash
-$ git clone https://github.com/CWSpear/firestarter.git firestarter
-$ cd firestarter
-$ npm link
+```shell
+git clone https://github.com/CWSpear/firestarter.git firestarter
+cd firestarter
+npm link
 ```
 
 `npm link` will link this local package to your global `npm` packages.
 
 Finally, initiate the generator:
 
-```bash
-$ yo firestarter
+```shell
+yo firestarter
 ```
-
-### Getting To Know Yeoman
-
-Yeoman has a heart of gold. He's a person with feelings and opinions, but he's very easy to work with. If you think he's too opinionated, he can be easily convinced.
-
-If you'd like to get to know Yeoman better and meet some of his friends, [Gulp](http://gulpjs.com/) and [Bower](http://bower.io), check out the complete [Getting Started Guide](https://github.com/yeoman/yeoman/wiki/Getting-Started).
 
 # Firestarter Gulp Build
 
@@ -84,7 +66,7 @@ gulp dev
 gulp development
 ```
 
-### Watch for
+### Watch for changes
 ```shell
 # just add the --watch flag to any command
 gulp [production] --watch
@@ -103,18 +85,24 @@ gulp --serve[="port"] # runs dev task + serves (define optional port)
 This particular project was built with an AngularJS Single Page Application (SPA), and these tasks are built with that goal in mind:
 
 * Cleans dest directory before running other tasks
-* Compile scss -> css (minifies if using build task)
-* Automatically links JS, rev's files (concat + minify if using build task)
-* Automatically link bower components (resolving dependencies to determine order)
-* Copies other static files and images to dest folder.
-* Watches all files and runs appropriate tasks and reloads page/injects CSS.
-* Uses `gulp-plumber` to make sure `watch` doesn't break everything.
+* Compile `scss` &rarr; `css` (minifies if using production task)
+* Runs `autoprefixer` on compiled `css`
+* Converts es6 to es5 via `babeljs`
+* Automatically links `js` and revisions files (for cachebusting) 
+* concat + minify (if using production task)
+* Automatically link `bower` components (both `js` and `css`) (resolving dependencies to determine order)
+* Automatically orders Angular files in order based on module dependencies
+* Copies other static files and images to dest folder
+* Watches all files and runs appropriate tasks and reloads page/injects CSS
+* Uses `gulp-plumber` to make sure `watch` doesn't break everything
 
 # Firestarter Template Builder
 
-*Coming Soon*
+*Coming Eventually...*
 
 # Changelog
+
+- **v1.1.0** (*2015-04-21*) - Add support for using es6 via `babeljs`, as well as clean up various little things. (Removed undocumented, rarely used `--install` flag support.)
 
 - **v1.0.4** (*2014-12-04*) - Add `gulp-angular-filesorter` to make it automatically resolve Angular module order instead of relying on knowing exactly where module definitions are. This fixed a bug where you'd sometimes get errors about trying to access undefined modules because Firestarter wasn't looking for app.js (or other files that define modules) in the correct place.
 

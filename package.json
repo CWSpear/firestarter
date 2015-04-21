@@ -1,6 +1,6 @@
 {
     "name": "generator-firestarter",
-    "version": "1.0.4",
+    "version": "1.1.0",
     "description": "A Yeoman generator to help kickstart Angular SPA with a Gulp build script.",
     "license": "MIT",
     "main": "app/index.js",

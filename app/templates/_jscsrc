@@ -2,5 +2,11 @@
     "preset": "crockford",
     "requireCurlyBraces": null,
     "disallowKeywordsOnNewLine": null,
-    "requireMultipleVarDecl": null
+    "requireMultipleVarDecl": null,
+    "disallowTrailingComma": null,
+    "esnext": true,
+    "requireSemicolons": true,
+    "requireTrailingComma": {
+        "ignoreSingleLine": true
+    }
 }

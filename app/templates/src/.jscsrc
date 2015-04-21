@@ -1,6 +1,0 @@
-{
-    "preset": "crockford",
-    "requireCurlyBraces": null,
-    "disallowKeywordsOnNewLine": null,
-    "requireMultipleVarDecl": null
-}
