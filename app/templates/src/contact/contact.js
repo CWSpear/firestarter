@@ -8,7 +8,7 @@
     function Contact($stateProvider) {
         $stateProvider
             .state('contact', {
-                url: '/',
+                url: '/contact',
                 controller: ContactCtrl,
                 templateUrl: '<%= assetDir ? assetDir + "/" : "" %>contact/contact.html',
             });

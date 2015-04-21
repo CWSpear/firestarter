@@ -8,7 +8,7 @@
     function About($stateProvider) {
         $stateProvider
             .state('about', {
-                url: '/',
+                url: '/about',
                 controller: AboutCtrl,
                 templateUrl: '<%= assetDir ? assetDir + "/" : "" %>about/about.html',
             });
