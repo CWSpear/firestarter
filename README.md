@@ -102,8 +102,8 @@ This particular project was built with an AngularJS Single Page Application (SPA
 
 # Changelog
 
+- **v1.1.1** (*2015-04-21*) - Fix some typos. I just really wanted to use **v.1.1.1**.
 - **v1.1.0** (*2015-04-21*) - Add support for using es6 via `babeljs`, as well as clean up various little things. (Removed undocumented, rarely used `--install` flag support.)
-
 - **v1.0.4** (*2014-12-04*) - Add `gulp-angular-filesorter` to make it automatically resolve Angular module order instead of relying on knowing exactly where module definitions are. This fixed a bug where you'd sometimes get errors about trying to access undefined modules because Firestarter wasn't looking for app.js (or other files that define modules) in the correct place.
 
 # License
