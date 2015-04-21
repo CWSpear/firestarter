@@ -4,7 +4,7 @@
         .config(routingConfig)
         .run(routingRun);
 
-    function routingConfig($stateProvider, $locationProvider) {
+    function routingConfig($stateProvider, $locationProvider, $urlRouterProvider) {
         $locationProvider.html5Mode(true).hashPrefix('!');
 
         // remove trailing slash :'-(

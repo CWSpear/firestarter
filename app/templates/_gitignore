@@ -1,6 +1,6 @@
 bower_components/
 node_modules/
 .sass-cache/
-<%= destDir =>/<%= assetDir ? assetDir + '/' : '' %>
+<%= destDir %>/<%= assetDir ? assetDir + '/' : '' %>
 
 *.sublime-workspace
